@@ -75,4 +75,22 @@ public class GrammarBasedParserTest {
     Assert.assertEquals(0, directives.size());
   }
 
+  @Test
+  public void testByteSizeAndTimeDurationTokens() throws Exception {
+    GrammarBasedParser parser = new GrammarBasedParser(new MigrateToV2());
+    
+    // Test with byte size and time duration tokens
+    String recipe = "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec MB s";
+    RecipeSymbol symbols = parser.parse(recipe);
+    
+    // Verify it was parsed without errors
+    Assert.assertNotNull(symbols);
+    Assert.assertEquals(1, symbols.size());
+    
+    // Verify the directive was parsed correctly
+    DirectiveSymbol symbol = symbols.get(0);
+    Assert.assertEquals("aggregate-stats", symbol.getDirectiveName());
+    Assert.assertEquals(6, symbol.getArguments().size());
+  }
+
 }

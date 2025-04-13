@@ -31,6 +31,53 @@ More [here](wrangler-docs/upcoming-features.md) on upcoming features.
   * A new capability that allows CDAP Administrators to **restrict the directives** that are accessible to their users.
 More information on configuring can be found [here](wrangler-docs/exclusion-and-aliasing.md)
 
+## Byte Size and Time Duration Parsers
+
+Wrangler now supports parsing and utilizing byte size and time duration units within recipes. This enhancement makes it easier to work with data containing file sizes, network transfer rates, response times, and other measurements.
+
+### Supported Units
+
+**Byte Size Units:**
+- B (Bytes)
+- KB (Kilobytes)
+- MB (Megabytes)
+- GB (Gigabytes)
+- TB (Terabytes)
+- PB (Petabytes)
+
+**Time Duration Units:**
+- ns (Nanoseconds)
+- us (Microseconds)
+- ms (Milliseconds)
+- s (Seconds)
+- m (Minutes)
+- h (Hours)
+- d (Days)
+
+### Usage
+
+The new `aggregate-stats` directive demonstrates how to work with these units:
+
+```
+aggregate-stats :size_column :time_column target_size_column target_time_column [size_unit] [time_unit]
+```
+
+#### Parameters:
+- `size_column`: Source column containing byte sizes (e.g., "5MB", "1.2GB")
+- `time_column`: Source column containing time durations (e.g., "100ms", "2.5s")
+- `target_size_column`: Target column for aggregated size value
+- `target_time_column`: Target column for aggregated time value
+- `size_unit` (optional): Output unit for size (default: "MB")
+- `time_unit` (optional): Output unit for time (default: "s")
+
+#### Example:
+
+```
+aggregate-stats :data_transfer :response_time total_size_mb total_time_sec
+```
+
+This directive will sum all values in the `data_transfer` column (converting them to a common unit) and output the total in megabytes in the `total_size_mb` column. Similarly, it will sum all values in the `response_time` column and output the total in seconds in the `total_time_sec` column.
+
 ## Demo Videos and Recipes
 
 Videos and Screencasts are best way to learn, so we have compiled simple, short screencasts that shows some of the features of Data Prep. Additional videos can be found [here](https://www.youtube.com/playlist?list=PLhmsf-NvXKJn-neqefOrcl4n7zU4TWmIr)

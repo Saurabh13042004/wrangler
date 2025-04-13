@@ -46,7 +46,7 @@ recipe
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
+ :  ( Comment | macro | directive SColon | pragma SColon | ifStatement)*
  ;
 
 directive
@@ -72,15 +72,15 @@ ifStatement
   ;
 
 ifStat
-  : 'if' expression '{' statements
+  : If expression OBrace statements
   ;
 
 elseIfStat
-  : '}' 'else' 'if' expression '{' statements
+  : CBrace Else If expression OBrace statements
   ;
 
 elseStat
-  : '}' 'else' '{' statements
+  : CBrace Else OBrace statements
   ;
 
 expression
@@ -88,7 +88,7 @@ expression
   ;
 
 forStatement
- : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
+ : For OParen Identifier Assign expression SColon expression SColon expression CParen OBrace statements CBrace
  ;
 
 macro
@@ -96,19 +96,19 @@ macro
  ;
 
 pragma
- : '#pragma' (pragmaLoadDirective | pragmaVersion)
+ : Pragma (pragmaLoadDirective | pragmaVersion)
  ;
 
 pragmaLoadDirective
- : 'load-directives' identifierList
+ : LoadDir identifierList
  ;
 
 pragmaVersion
- : 'version' Number
+ : Version Number
  ;
 
 codeblock
- : 'exp' Space* ':' condition
+ : Exp Space* Colon condition
  ;
 
 identifier
@@ -116,35 +116,35 @@ identifier
  ;
 
 properties
- : 'prop' ':' OBrace (propertyList)+  CBrace
- | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
- | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
+ : Prop Colon OBrace (propertyList)+  CBrace
+ | Prop Colon OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
+ | Prop Colon OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
+ | Prop Colon (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
+ | Prop Colon OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
  ;
 
 propertyList
- : property (',' property)*
+ : property (Comma property)*
  ;
 
 property
- : Identifier '=' ( text | number | bool )
+ : Identifier Assign ( text | number | bool )
  ;
 
 numberRanges
- : numberRange ( ',' numberRange)*
+ : numberRange ( Comma numberRange)*
  ;
 
 numberRange
- : Number ':' Number '=' value
+ : Number Colon Number Assign value
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | ByteSize | TimeDuration
  ;
 
 ecommand
- : '!' Identifier
+ : External Identifier
  ;
 
 config
@@ -176,23 +176,23 @@ command
  ;
 
 colList
- : Column (','  Column)+
+ : Column (Comma Column)+
  ;
 
 numberList
- : Number (',' Number)+
+ : Number (Comma Number)+
  ;
 
 boolList
- : Bool (',' Bool)+
+ : Bool (Comma Bool)+
  ;
 
 stringList
- : String (',' String)+
+ : String (Comma String)+
  ;
 
 identifierList
- : Identifier (',' Identifier)*
+ : Identifier (Comma Identifier)*
  ;
 
 
@@ -247,11 +247,31 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+If        : 'if';
+Else      : 'else';
+For       : 'for';
+Prop      : 'prop';
+Exp       : 'exp';
+Version   : 'version';
+LoadDir   : 'load-directives';
+Pragma    : '#pragma';
 
 Bool
  : 'true'
  | 'false'
  ;
+
+// Add these fragment definitions before the Number rule
+
+fragment
+Int 
+  : '0' | [1-9] [0-9]*
+  ;
+
+fragment
+Digit
+  : [0-9]
+  ;
 
 Number
  : Int ('.' Digit*)?
@@ -295,19 +315,40 @@ UnicodeEscape
 fragment
    HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
+// New lexer rules for byte size and time duration
+ByteSize
+   : Number ByteUnit
+   ;
+
+TimeDuration
+   : Number TimeUnit
+   ;
+
+fragment
+ByteUnit
+   : [Kk][Bb]            // Kilobyte
+   | [Mm][Bb]            // Megabyte
+   | [Gg][Bb]            // Gigabyte
+   | [Tt][Bb]            // Terabyte
+   | [Pp][Bb]            // Petabyte
+   | [Bb]                // Bytes
+   ;
+
+fragment
+TimeUnit
+   : [Mm][Ss]            // Milliseconds
+   | [Ss]                // Seconds
+   | [Mm]                // Minutes
+   | [Hh]                // Hours
+   | [Dd]                // Days
+   | [Nn][Ss]            // Nanoseconds
+   | [Uu][Ss]            // Microseconds
+   ;
+
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
  ;
 
 Space
  : [ \t\r\n\u000C]+ -> skip
- ;
-
-fragment Int
- : '-'? [1-9] Digit* [L]*
- | '0'
- ;
-
-fragment Digit
- : [0-9]
  ;
