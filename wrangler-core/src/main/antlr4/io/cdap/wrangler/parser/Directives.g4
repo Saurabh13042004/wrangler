@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool | ByteSize | TimeDuration
+ : String | Number | Column | Bool | byteSizeArg | timeDurationArg
  ;
 
 ecommand
@@ -195,6 +197,14 @@ identifierList
  : Identifier (Comma Identifier)*
  ;
 
+// Add new parser rules for byte size and time duration arguments
+byteSizeArg
+ : ByteSize
+ ;
+
+timeDurationArg
+ : TimeDuration
+ ;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -315,13 +325,20 @@ UnicodeEscape
 fragment
    HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
-// New lexer rules for byte size and time duration
+// Enhanced ByteSize lexer rule with decimal support
 ByteSize
-   : Number ByteUnit
+   : (Int | Float) ByteUnit
    ;
 
+// Enhanced TimeDuration lexer rule with decimal support
 TimeDuration
-   : Number TimeUnit
+   : (Int | Float) TimeUnit
+   ;
+
+// Add Float fragment for decimal number support
+fragment
+Float
+   : Int '.' Digit+
    ;
 
 fragment
@@ -332,6 +349,11 @@ ByteUnit
    | [Tt][Bb]            // Terabyte
    | [Pp][Bb]            // Petabyte
    | [Bb]                // Bytes
+   | [Kk]                // Kilobytes (shorthand)
+   | [Mm]                // Megabytes (shorthand)
+   | [Gg]                // Gigabytes (shorthand)
+   | [Tt]                // Terabytes (shorthand)
+   | [Pp]                // Petabytes (shorthand)
    ;
 
 fragment
@@ -343,6 +365,9 @@ TimeUnit
    | [Dd]                // Days
    | [Nn][Ss]            // Nanoseconds
    | [Uu][Ss]            // Microseconds
+   | [Ww]                // Weeks
+   | [Mm][Oo]            // Months
+   | [Yy]                // Years
    ;
 
 Comment

@@ -96,8 +96,78 @@ public class TimeDuration implements Token {
   }
 
   /**
-   * Converts a value with the specified unit to nanoseconds.
+   * Returns the value in hours.
    */
+  public double getHours() {
+    return nanoseconds / (3600.0 * 1_000_000_000.0);
+  }
+
+  /**
+   * Returns the value in days.
+   */
+  public double getDays() {
+    return nanoseconds / (24.0 * 3600.0 * 1_000_000_000.0);
+  }
+
+  /**
+   * Returns the value in weeks.
+   */
+  public double getWeeks() {
+    return nanoseconds / (7.0 * 24.0 * 3600.0 * 1_000_000_000.0);
+  }
+
+  /**
+   * Returns the value in months (assuming 30.44 days per month).
+   */
+  public double getMonths() {
+    return nanoseconds / (30.44 * 24.0 * 3600.0 * 1_000_000_000.0);
+  }
+
+  /**
+   * Returns the value in years (assuming 365.25 days per year).
+   */
+  public double getYears() {
+    return nanoseconds / (365.25 * 24.0 * 3600.0 * 1_000_000_000.0);
+  }
+
+  /**
+   * Converts the value to the specified unit.
+   * @param targetUnit The target unit to convert to (ns, us, ms, s, m, h, d, w, mo, y)
+   * @return The value in the target unit
+   */
+  public double convertTo(String targetUnit) {
+    switch (targetUnit.toLowerCase()) {
+      case "ns":
+        return nanoseconds;
+      case "us":
+        return nanoseconds / 1_000.0;
+      case "ms":
+        return getMilliseconds();
+      case "s":
+        return getSeconds();
+      case "m":
+        return getMinutes();
+      case "h":
+        return getHours();
+      case "d":
+        return getDays();
+      case "w":
+        return getWeeks();
+      case "mo":
+        return getMonths();
+      case "y":
+        return getYears();
+      default:
+        throw new IllegalArgumentException(
+          String.format("Unknown target unit: %s. Supported units are: ns, us, ms, s, m, h, d, w, mo, y", targetUnit));
+    }
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s (%d ns)", originalValue, nanoseconds);
+  }
+
   private long convertToNanos(double value, String unit) {
     switch (unit) {
       case "ns":
@@ -111,11 +181,18 @@ public class TimeDuration implements Token {
       case "m":
         return (long) (value * 60 * 1_000_000_000);
       case "h":
-        return (long) (value * 60 * 60 * 1_000_000_000);
+        return (long) (value * 3600L * 1_000_000_000L);
       case "d":
-        return (long) (value * 24 * 60 * 60 * 1_000_000_000);
+        return (long) (value * 24 * 3600L * 1_000_000_000L);
+      case "w":
+        return (long) (value * 7 * 24 * 3600L * 1_000_000_000L);
+      case "mo":
+        return (long) (value * 30.44 * 24 * 3600L * 1_000_000_000L);
+      case "y":
+        return (long) (value * 365.25 * 24 * 3600L * 1_000_000_000L);
       default:
-        throw new IllegalArgumentException("Unknown time unit: " + unit);
+        throw new IllegalArgumentException(
+          String.format("Unknown time unit: %s. Supported units are: ns, us, ms, s, m, h, d, w, mo, y", unit));
     }
   }
 }

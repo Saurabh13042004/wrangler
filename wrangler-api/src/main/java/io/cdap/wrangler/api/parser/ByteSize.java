@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2017-2019 Cask Data, Inc.
  *
@@ -97,24 +96,75 @@ public class ByteSize implements Token {
   }
 
   /**
+   * Returns the value in terabytes.
+   */
+  public double getTerabytes() {
+    return bytes / (1024.0 * 1024.0 * 1024.0 * 1024.0);
+  }
+
+  /**
+   * Returns the value in petabytes.
+   */
+  public double getPetabytes() {
+    return bytes / (1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0);
+  }
+
+  /**
+   * Converts the value to the specified unit.
+   * @param targetUnit The target unit to convert to (B, KB, MB, GB, TB, PB)
+   * @return The value in the target unit
+   */
+  public double convertTo(String targetUnit) {
+    switch (targetUnit.toUpperCase()) {
+      case "B":
+        return bytes;
+      case "KB":
+        return getKilobytes();
+      case "MB":
+        return getMegabytes();
+      case "GB":
+        return getGigabytes();
+      case "TB":
+        return getTerabytes();
+      case "PB":
+        return getPetabytes();
+      default:
+        throw new IllegalArgumentException(
+          String.format("Unknown target unit: %s. Supported units are: B, KB, MB, GB, TB, PB", targetUnit));
+    }
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s (%d bytes)", originalValue, bytes);
+  }
+
+  /**
    * Converts a value with the specified unit to bytes.
    */
   private long convertToBytes(double value, String unit) {
     switch (unit) {
       case "B":
         return (long) value;
+      case "K":
       case "KB":
         return (long) (value * 1024);
+      case "M":
       case "MB":
         return (long) (value * 1024 * 1024);
+      case "G":
       case "GB":
         return (long) (value * 1024 * 1024 * 1024);
+      case "T":
       case "TB":
-        return (long) (value * 1024 * 1024 * 1024 * 1024);
+        return (long) (value * 1024L * 1024L * 1024L * 1024L);
+      case "P":
       case "PB":
-        return (long) (value * 1024 * 1024 * 1024 * 1024 * 1024);
+        return (long) (value * 1024L * 1024L * 1024L * 1024L * 1024L);
       default:
-        throw new IllegalArgumentException("Unknown byte unit: " + unit);
+        throw new IllegalArgumentException(
+          String.format("Unknown byte unit: %s. Supported units are: B, K/KB, M/MB, G/GB, T/TB, P/PB", unit));
     }
   }
+}
 }

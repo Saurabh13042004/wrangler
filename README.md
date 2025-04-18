@@ -263,3 +263,130 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+# Wrangler ByteSize and TimeDuration Parsers
+
+This enhancement adds native support for parsing and utilizing byte size and time duration units within Wrangler recipes. The implementation includes new parsers for byte sizes and time durations, along with a new directive for aggregating statistics.
+
+## ByteSize Parser
+
+The ByteSize parser supports the following units:
+- B (Bytes)
+- K/KB (Kilobytes)
+- M/MB (Megabytes)
+- G/GB (Gigabytes)
+- T/TB (Terabytes)
+- P/PB (Petabytes)
+
+Examples:
+```
+10B    // 10 bytes
+1.5KB  // 1.5 kilobytes
+2.7GB  // 2.7 gigabytes
+1T     // 1 terabyte (shorthand)
+```
+
+## TimeDuration Parser
+
+The TimeDuration parser supports the following units:
+- ns (Nanoseconds)
+- us (Microseconds)
+- ms (Milliseconds)
+- s (Seconds)
+- m (Minutes)
+- h (Hours)
+- d (Days)
+- w (Weeks)
+- mo (Months, assuming 30.44 days/month)
+- y (Years, assuming 365.25 days/year)
+
+Examples:
+```
+100ns   // 100 nanoseconds
+1.5ms   // 1.5 milliseconds
+30s     // 30 seconds
+2.5h    // 2.5 hours
+7d      // 7 days
+```
+
+## Aggregate Stats Directive
+
+The new `aggregate-stats` directive allows you to compute statistics on columns containing byte sizes and time durations.
+
+### Syntax
+```
+aggregate-stats :size_column :time_column :result_size_column :result_time_column [size_unit] [time_unit] [aggregate_type]
+```
+
+### Parameters
+- `size_column`: Source column containing byte sizes
+- `time_column`: Source column containing time durations
+- `result_size_column`: Target column for aggregated size
+- `result_time_column`: Target column for aggregated time
+- `size_unit`: (Optional) Output unit for size (default: MB)
+- `time_unit`: (Optional) Output unit for time (default: s)
+- `aggregate_type`: (Optional) Type of aggregation - 'total' or 'average' (default: total)
+
+### Examples
+
+1. Basic Usage - Total Aggregation
+```
+aggregate-stats :data_size :response_time :total_size :total_time MB s total
+```
+
+2. Average with Custom Units
+```
+aggregate-stats :file_size :processing_time :avg_size :avg_time GB ms average
+```
+
+3. Mixed Units
+```
+aggregate-stats :transfer_size :duration :total_size :total_time KB h total
+```
+
+## Implementation Details
+
+The implementation includes:
+1. Enhanced grammar rules in `Directives.g4` for parsing byte sizes and time durations
+2. Updated `ByteSize` and `TimeDuration` classes with comprehensive unit support
+3. New `AggregateStatsDirective` for computing statistics
+4. Comprehensive test coverage
+
+## Usage in Code
+
+### ByteSize
+```java
+ByteSize size = new ByteSize("1.5GB");
+long bytes = size.getBytes();
+double mb = size.getMegabytes();
+double converted = size.convertTo("TB");
+```
+
+### TimeDuration
+```java
+TimeDuration duration = new TimeDuration("2.5h");
+long nanos = duration.getNanoseconds();
+double minutes = duration.getMinutes();
+double converted = duration.convertTo("d");
+```
+
+## Testing
+
+The implementation includes comprehensive test coverage for:
+- Basic aggregation
+- Average calculations
+- Different unit combinations
+- Edge cases (empty input, mixed units)
+- Unit conversions
+
+## Contributing
+
+Feel free to contribute by:
+1. Reporting bugs
+2. Suggesting new features
+3. Adding more unit tests
+4. Improving documentation
+
+## License
+
+Licensed under the Apache License, Version 2.0.
